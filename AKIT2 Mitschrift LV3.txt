@@ -1,0 +1,233 @@
+df = read.csv('C:\\Users\\Dominik\\Downloads\\housing-prices-ge19.txt')
+
+df$price.log = log10(df$Price) # deswegen gleichen wir es mit einem log aus
+m2 = lm(price.log ~ Age + Land.Value + Living.Area + Pct.College + Bedrooms, data=df)
+# Daten von gestern geladen
+
+mod0 = lm(price.log ~ 1, data=df)
+summary(mod0)
+sum(resid(mod0)^2) # ^2 ist einfach so
+
+[1] 67.98979
+# Wert von Rechnung in Zeile 9
+
+mod1 = lm(price.log ~ Living.Area, data=df)
+summary(mod1)
+sum(resid(mod1)^2)
+
+[1] 35.85919
+# Wer von Rechnung in Zeile 16
+
+rss1 = sum(resid(mod1)^2)
+(rss0-rss1)/rss0
+
+mod2 = update(mod1, ~ . + Age)
+summary(mod2)
+
+rss2 = sum(resid(mod2)^2)
+(rss1 - rss2)/rss0
+
+mod3 = update(mod2, ~ . + Pct.College)
+summary(mod3)
+
+rss3 = sum(resid(mod3)^2)
+(rss2 - rss3)/rss0
+
+# Nun automatisieren wir alles was wir vorher per Hand gemacht haben.
+
+library(car)
+Anova(mod3)
+# Sum sq sagt aus wieviel jede Variable beiträgt.
+# Anova sortiert automatisch schon welche Variable am meisten aussagt
+
+Anova Table (Type II tests)
+
+Response: price.log
+            Sum Sq   Df  F value    Pr(>F)    
+Living.Area 26.588    1 1329.042 < 2.2e-16 ***
+Age          0.800    1   39.981 3.255e-10 ***
+Pct.College  0.451    1   22.527 2.243e-06 ***
+Residuals   34.610 1730                       
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+# Living.Area trägt am meisten zu unserem Ergebnis bei.
+
+drop1(mod3)
+# drop1 macht ca. das gleiche wie Anova.
+# Gibt uns aber auch noch AIC. Ergebnisse sind negativ.
+# none Wert ist der Gesamtwert - Würde man Living.Area weg lassen dann würde es auf -5792 sinken.
+
+Single term deletions
+
+Model:
+price.log ~ Living.Area + Age + Pct.College
+            Df Sum of Sq    RSS     AIC
+<none>                   34.610 -6779.0
+Living.Area  1   26.5883 61.198 -5792.6
+Age          1    0.7999 35.410 -6741.3
+Pct.College  1    0.4507 35.060 -6758.5
+
+# Wenn AIC Sprung groß ist dann erklärt die Variable viel wenn der Sprung klein ist dann wird auch nicht viel erklärt.
+
+AIC(mod0, mod1, mod2, mod3)
+# Man kann sehen wie viel mehr Ausgesagt werden kann je mehr Variablen im Modell sind.
+
+     df       AIC
+mod0  2  -691.250
+mod1  3 -1798.590
+mod2  4 -1835.655
+mod3  5 -1856.088
+
+# Von mod0 auf mod1 wurde Living.Area hinzugefügt wie man sehen kann.
+
+# Jetzt probieren wir die Effektgröße einer Variable zu finden.
+mod4 = update(mod3, ~ . - Living.Area)
+summary(mod4)
+# Wir haun Living.Area raus.
+
+Coefficients:
+              Estimate Std. Error t value Pr(>|t|)    
+(Intercept)  5.0945841  0.0252709 201.599   <2e-16 ***
+Age         -0.0014824  0.0001514  -9.794   <2e-16 ***
+Pct.College  0.0041320  0.0004379   9.435   <2e-16 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 0.188 on 1731 degrees of freedom
+Multiple R-squared:  0.09989,	Adjusted R-squared:  0.09885 
+F-statistic: 96.05 on 2 and 1731 DF,  p-value: < 2.2e-16
+
+# Multiple R-squared interresiert uns hier! Ging runter also war Living.Area wichtig!
+
+r_voll = summary(mod3)$r.squared
+r_voll
+[1] 0.4909575 # Ergebnis
+
+r_ohneArea = summary(mod4)$r.squared
+r_ohneArea
+[1] 0.09989463 # Ergebnis
+
+f2 = (r_voll - r_ohneArea)/(1- r_voll)
+f2
+[1] 0.7682322 # Ergbenis ist sehr groß.
+
+library(pwr)
+pwr.f2.test(f2=0.768, sig.level = 0.05, power = 0.8, u = 1)
+# u sagt wieviele Variablen sollen diesen Effekt beschreiben
+
+     Multiple regression power calculation 
+
+              u = 1
+              v = 10.46751
+             f2 = 0.768
+      sig.level = 0.05
+          power = 0.8
+		  
+# Bei v müssen wir noch die anderen Variablen dazu addieren. Wir haben 3 weitere Variablen = aufgerundet dann 14.
+# 14 Wohnungen müssten wir untersuchen.
+
+# 14 Samples brauchen wir jetzt
+library(dplyr)
+sample_1 = sample_n(df, 14)
+sample_modell = lm(price.log ~ Age + Living.Area + Pct.College, data=sample_1)
+summary(sample_modell)
+# 80% power sagen aus 4 von 5 bekommen signifikante Ergebnisse und 1 von 5 nicht.
+
+sign = numeric(1000)
+for(i in 1:1000) {
+  sample_i = sample_n(df, 15)
+  sample_modell_i = lm(price.log ~ Age + Living.Area + Pct.College, data=sample_i)
+  sign[i] = coef(summary(sample_modell_i))[3,4]
+}
+sum(sign<0.05)
+# Wir machen hier jetzt die Samples und spielen 15 davon 1000 Mal durch. 1/5 sollte nicht signifikant sein!
+
+[1] 799
+# 799 sind signifikant von den 1000. Also wirklich 201 sind ca. 1/5 wo es nicht zutrifft.
+
+# Nehmen wir nun eine andere Variable weil mit Living.Area ist es too easy peasy lemon squeeze!
+summary(mod3)
+mod5 = update(mod3, ~ . - Age) # Age weg tun
+r_ohneAge = summary(mod5)$r.squared
+f2_Age = (r_voll - r_ohneAge)/(1 - r_voll) # Formel die ich Aufgeschreiben habe - LV3
+f2_Age
+
+[1] 0.02311065 # Effektgröße ist 0.023
+
+pwr.f2.test(power=0.8, sig.level = 0.05, f2 = 0.023, u=1)
+
+     Multiple regression power calculation 
+
+              u = 1
+              v = 341.1861
+             f2 = 0.023
+      sig.level = 0.05
+          power = 0.8
+
+# nun ist v schon größer mit 345 Wohnungen die ich anschauen müsste.
+
+sign = numeric(1000)
+for(i in 1:1000) {
+  sample_i = sample_n(df, 345)
+  sample_modell_i = lm(price.log ~ Age + Living.Area + Pct.College, data=sample_i)
+  sign[i] = coef(summary(sample_modell_i))[2,4] # p-Wert für Age
+}
+sum(sign<0.05)
+
+# Wieder 1000 Mal durchführen. Jeder bekommt leicht andere Werte weil die Samples verscheiden sind.
+
+[1] 748
+# Ergebnis passt wieder gut mit 1/5 falsch.
+
+pwr.f2.test(sig.level = 0.05, f2 = 0.02, u=1, v = 200)
+# Können power Funktion auch nutzen um andere Sachen zu Berechnen.
+
+     Multiple regression power calculation 
+
+              u = 1
+              v = 200
+             f2 = 0.02
+      sig.level = 0.05
+          power = 0.5161322
+
+# Bei 200 Versuchen würden wir nur einen power von 0.516 bekommen.
+
+# Schauen wir nun auch den Faktor an.
+summary(mod3)
+
+Coefficients:
+              Estimate Std. Error t value Pr(>|t|)    
+(Intercept)  4.850e+00  2.016e-02 240.651  < 2e-16 ***
+Living.Area  2.076e-04  5.693e-06  36.456  < 2e-16 ***
+Age         -7.316e-04  1.157e-04  -6.323 3.26e-10 ***
+Pct.College  1.598e-03  3.367e-04   4.746 2.24e-06 ***
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 0.1414 on 1730 degrees of freedom
+Multiple R-squared:  0.491,	Adjusted R-squared:  0.4901 
+F-statistic: 556.2 on 3 and 1730 DF,  p-value: < 2.2e-16
+
+# Age Estimate = Faktor = -7.316e-04 = -0.0007316
+
+sign = numeric(1000)
+faktor = numeric(1000) # Schauen Faktor mit an.
+for(i in 1:1000) {
+  sample_i = sample_n(df, 345)
+  sample_modell_i = lm(price.log ~ Age + Living.Area + Pct.College, data=sample_i)
+  sign[i] = coef(summary(sample_modell_i))[2,4] # p-Wert für Age
+  faktor[i] = coef(summary(sample_modell_i))[2,1] # Einflusswert von Age
+}
+
+hist(faktor) # Würde eher nicht pupliziert werden.
+hist(faktor[sign<0.05]) # das schon eher weil signifikant
+mean(faktor[sign<0.05]) # jetzt sind wir aber weit weg vom eigentlichen Mittelwert von -0.0007326
+
+[1] -0.0008577005 # Ergebnis
+
+# Warum ist das so? Weil nur die Signifikanten Ergebnisse pupliziert werden von Wissenschaftlern.
+# Würden wir also nicht diese -0.0007316 kennen dann würden wir den falschen Mittelwert nehmen von -0.0008577.
+
+# Zeigt das wenn wir zu wenig power haben verlieren wir so oder so.
+
