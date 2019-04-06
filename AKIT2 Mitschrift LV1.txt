@@ -1,0 +1,114 @@
+# AKIT 2 Mitschrift
+
+body = eine var in die wir Daten laden können.
+body = read.csv('C:\\Users\\Dominik\\Downloads\\body-dimensions.csv')
+# Doppelte \ bei Windows!
+
+summary(body)
+# Macht eine Zusammenfassung der Werte in body.
+
+hist(body$Age)
+# Spuckt uns ein Histogram aus.
+
+plot(body$Height, body$Weight)
+# Erstellt ein Histogram das wir dann mit einer lionearen Gleichung deuten wollen.
+
+?plot bringt eine Hilfe über die Befehle.
+
+model = lm(Weight ~ Height, data=body)
+# Wir erstellen eine Regression "y=a+bx".
+# y=Weight
+# x=Height
+
+summary(model)
+# Wir lassen uns eine Zusammenfassung der Regression ausgeben:
+Coefficients:
+              Estimate Std. Error t value Pr(>|t|)    
+(Intercept) -105.01125    7.53941  -13.93   <2e-16 ***
+Height         1.01762    0.04399   23.14   <2e-16 ***
+
+# Wir setzen ein:
+y=a+b*x
+Weight=Intercept+b*Height
+kg=-105+1.02*cm
+
+# Intercept Wert heißt wo die Linie beginnt auf der 0 Stelle der x Achse.
+# Wichtige Info hier - Wenn jemand 0cm Groß ist müsste er -105kg wiegen. Da wir aber im Datensatz nur Personen haben die 150cm oder größer sind können wir das nicht auf Babys anwenden!
+
+plot(body$Height, body$Weight)
+abline(a=-105, b=1.0176, col='blue')
+coef(model)
+# Damit machen wir einen Scatterplot.
+
+# Damit greifen wir auf die Werte zu des Koeffizienten
+koeff = coef(model)
+# In R beginnen Arrays bei 1 und nicht bei 0!
+abline(a=koeff[1], b=koeff[2], col='blue')
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-18.743  -6.402  -1.231   5.059  41.103
+# Wie weit sind die Punkte von der Linie entfernt bei einem Scatterplot.
+
+Residual standard error: 9.308 on 505 degrees of freedom
+Multiple R-squared:  0.5145,	Adjusted R-squared:  0.5136 
+F-statistic: 535.2 on 1 and 505 DF,  p-value: < 2.2e-16
+# Multiple R-squared:  0.5145 = 51% heißt das ca so viele Leute genau das Wiegen laut ihrer Körpergröße (nicht genaue Aussage).
+
+# Eigenes Gewicht
+koeff[1] + koeff[2]*170
+
+(Intercept) 
+    67.9836 
+# Ich sollte laut unseren Daten ca. 68kg wiegen.
+
+# Zufallszahlen von Normalverteilung
+zufall=rnorm(n=30)
+hist(zufall)
+mean(zufall)
+#mean gibt uns den Mittelwert aus.
+
+# Konfidenzintervall
+confint(model)
+
+                   2.5 %     97.5 %
+(Intercept) -119.8237251 -90.198783
+Height 
+# Auswertung des Befehls confint.
+
+# Nochmal kopiert um mehrere Geraden einzuzeichnen
+plot(body$Height, body$Weight)
+intercept100=rnorm(n=100, mean=koeff[1], sd=7.53941)
+hist(intercept100)
+height100 = rnorm(n=100, mean=koeff[2], sd=0.04399)
+for (i in 1:100) {
+  abline(a=intercept100[i], b=height100[i], col="skyblue")
+}
+# Ganze for Schleife makieren und dann Strg+Enter zum Ausführen drücken.
+
+
+
+# Neues Modell
+model2 = lm(Weight ~ Height + Age, data=body)
+summary(model2)
+
+# Eigenes Gewicht + Alter anschauen
+koeff2 = coef(model2)
+koeff2[1]+koeff2[2]*170 + koeff2[3]*28
+
+(Intercept) 
+   67.51845
+# Schätzung wurde bisl Besser.
+
+# Erweiterung von Modell2
+model3 = lm(Weight ~ Height + Age + Gender, data=body)
+summary(model3)
+
+plot(body$Height, body$Weight)
+abline(a=koeff[1], b=koeff[2], col="blue")
+koeff3=coef(model3)
+abline(a=koeff3[1], b=koeff3[2], col="purple")
+abline(a=koeff3[1]+koeff3[4], b=koeff3[2], col="green")
+
+hist(body$Age[body$Gender=='Male'])
+hist(body$Age[body$Gender=='Female'])
