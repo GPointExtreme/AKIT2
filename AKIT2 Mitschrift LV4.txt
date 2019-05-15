@@ -1,0 +1,101 @@
+df = read.csv('C:\\Users\\Dominik\\Downloads\\operationen.csv')
+
+table(df$Team)
+table(df$Resultat)
+addmargins(table(df$Team, df$Resultat))
+148/502 # 29% Team B
+188/498 # 37% Team A
+
+table(df$Schwierigkeit)
+table(df$Team, df$Resultat, df$Schwierigkeit)
+
+# Team A, leicht: 20%
+56/(214+56)
+# Team a, schwer: 58%
+132/(132+96)
+
+# Team B, leicht: 22%
+89/(89+318)
+# Team B, schwer: 62%
+59/(59+36)
+
+
+# Neues Beispiel
+df = read.csv('C:\\Users\\Dominik\\Downloads\\dichotomize.csv')
+dfi = read.csv('C:\\Users\\Dominik\\Downloads\\dichotomize-icecream.csv')
+
+summary(lm(cost ~ work + complexity, data=df))
+df$complexFactor = ifelse(df$complexity < 13.5, 'low', 
+                          ifelse(df$complexity > 18.5, 'high', 'normal'))
+table(df$complexFactor)
+
+summary(lm(cost ~ work + complexFactor, data=df))
+
+Coefficients:
+                    Estimate Std. Error t value Pr(>|t|)    
+(Intercept)         186.2615     5.8354  31.919  < 2e-16 ***
+work                  3.9657     0.1891  20.976  < 2e-16 ***
+complexFactorlow     -6.4462     2.3124  -2.788  0.00551 ** 
+complexFactornormal  -6.4237     2.2930  -2.801  0.00529 ** 
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+Residual standard error: 20.74 on 496 degrees of freedom
+Multiple R-squared:  0.473,	Adjusted R-squared:  0.4698 
+F-statistic: 148.4 on 3 and 496 DF,  p-value: < 2.2e-16
+
+# high ist im Intercept drinnen. low ist -6.44 unter high im Koordinaten system.
+# Skala ist extrem wichtig! 13.5 und 18.5 dürfen nicht willkührlich sein.
+
+# Beispiel Eis
+
+summary(lm(deaths ~ icecream, data=dfi))
+summary(lm(deaths ~ icecream + temperature, data=dfi))
+table(dfi$heat)
+plot(dfi$heat, dfi$temperature)
+
+summary(lm(deaths ~ icecream + heat, data=dfi))
+
+# Neues Beispiel!!!
+
+df = read.csv('C:\\Users\\Dominik\\Downloads\\Fair-JPE-1978_PsychToday.csv')
+
+df$had.affair = ifelse(df$affairs > 0, 1, 0)
+table(df$had.affair)
+
+model = glm(had.affair ~ age, data=df, family = binomial(link='logit'))
+summary(model)
+
+Deviance Residuals: 
+    Min       1Q   Median       3Q      Max  
+-0.8746  -0.7773  -0.7316  -0.6901   1.7616  
+
+Coefficients:
+             Estimate Std. Error z value Pr(>|z|)    
+(Intercept) -1.557192   0.341628  -4.558 5.16e-06 ***
+age          0.013920   0.009927   1.402    0.161    
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 675.38  on 600  degrees of freedom
+Residual deviance: 673.44  on 599  degrees of freedom
+AIC: 677.44
+
+Number of Fisher Scoring iterations: 4
+
+# 
+
+exp(coef(model))
+
+predict(model, newdata=data.frame(age=46), type='response')
+# 28,5%
+
+-1.557192 + 46*0.013920 # logit
+odds = exp(-1.557192 + 46*0.013920) # odds (Wettchance) 0.4 == 2/5
+odds/(1+odds) # absolute Wahrscheinlichkeit: 28.6%
+
+model2 = glm(had.affair ~ age + married, data=df, family = binomial(link='logit'))
+summary(model2)
+
