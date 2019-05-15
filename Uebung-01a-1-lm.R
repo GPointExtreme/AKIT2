@@ -65,5 +65,11 @@ show(df_under46)
 
 model_under46=lm(df_under46$BrainWeight~df_under46$HeadSize)
 summary(model_under46)
+koeff_under46=coef(model_under46)
+abline(koeff_under46[1], koeff_under46[2], col='blue')
+
 model_over46=lm(df_over46$BrainWeight~df_over46$HeadSize)
 summary(model_over46)
+koeff_over46=coef(model_over46)
+abline(koeff_over46[1], koeff_over46[2], col='green')
+# Grüne Linie steigt stärker an als Blaue. Heißt das ältere Gehirne wachsen schneller?
