@@ -1,0 +1,9 @@
+> #Hinkley
+> hinkley(m25)
+        Estimate Pr(>|z|)   
+y.hat      1.121    0.000   
+y.hat^2    0.087    0.582 ok
+
+# Wert über 0.5 ist ok (Modell ist gut).
+# Unter 0.5 = not ok (Modell ist nicht gut)
+
