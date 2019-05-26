@@ -48,3 +48,41 @@ predict(model, newdata = data.frame(current.weight = 95, type='response'))
 #134.667
 
 #Die Prediction liefert die gleichen Ergebnisse wie die Regressionsgleichung
+
+#Neues Beispiel!
+
+#1
+body = read.csv('C:\\Users\\Dominik\\Downloads\\software-estimation.csv')
+
+#2
+hist(body$Function.point)
+hist(body$Work.hours)
+#Sind beide nicht gut verteilt
+
+#3
+plot(body$Function.point, body$Work.hours)
+#Viele Datensätze sind in der linken unteren Ecke
+
+#4
+model = lm(Work.hours ~ Function.point, data = body)
+koeff = coef(model)
+abline(a=koeff[1], b=koeff[2], col = "blue")
+
+#4a
+summary(model)
+confint(model)
+#Bei erhöhung der points um 1 Einheit erhöhen sich die Stunden um 15,124
+
+#4b
+predict(model, newdata = data.frame(Function.point = 100, type='response'))
+#2098.09
+predict(model, newdata = data.frame(Function.point = 200, type='response'))
+#3610.516
+predict(model, newdata = data.frame(Function.point = 400, type='response'))
+#6635.369
+predict(model, newdata = data.frame(Function.point = 800, type='response'))
+#12685.07
+predict(model, newdata = data.frame(Function.point = 1600, type='response'))
+#24784.48
+predict(model, newdata = data.frame(Function.point = 3200, type='response'))
+#48983.3
