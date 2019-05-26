@@ -1,0 +1,51 @@
+Übung 01a-2: Weitere Regressionsrechnungen
+==========================================
+
+Anmerkung: Lesen Sie sich vorher das Arbeitsblatt 01a durch.
+
+Datenset blutdruck.csv
+----------------------
+
+Führen Sie folgende Berechnungen bzw. Aufgaben durch:
+
+    1. Laden Sie das Datenset
+    2. Bestimmen Sie Mittelwert und Standard-Abweichung für Blutdruck
+       (blood.pressure) und aktuellem Gewicht (current.weight)
+    3. Erstellen Sie ein Histogramm für Blutdruck und Gewicht
+    4. Scatterplot: Blutdruck ~ Gewicht
+    5. Regression: Blutdruck ~ Gewicht
+        a) Geben Sie ein Konfidenzintervall für die Koeffizienten an
+        b) Berechnen Sie den Blutdruck für folgende Gewichte mithilfe der
+           Regressionsgleichung: 55kg, 75kg, 95kg
+        c) Berechnen Sie den Blutdruck + Konfidenzintervall für folgende 
+           Gewichte mithilfe der predict-Funktion: 55kg, 75kg, 95kg
+
+
+Datenset software-estimation.csv
+--------------------------------
+
+Führen Sie folgende Berechnungen bzw. Aufgaben durch:
+
+    1. Laden Sie das Datenset
+    2. Erstellen Sie ein Histogramm für Function-Point (function.point)
+       und Arbeitsstunden (work.hours)
+    3. Scatterplot: Arbeitsstunden ~ Function-Point
+    4. Regression: Arbeitsstunden ~ Function-Point
+        a) Geben Sie ein Konfidenzintervall für die Koeffizienten an
+        b) Berechnen Sie den Arbeitsstunden + Konfidenzintervall für
+           folgende Function-Point-Werte mithilfe der
+           predict-Funktion: 100, 200, 400, 800, 1600, 3200
+
+
+Daten von:
+----------
+
+Blutdruck: selbst erstelltes, synthetisches Datenset, mit Eigenschaften lt.
+Tu, Gunnell, Gilthorpe: Simpson's Paradox, Lord's Paradox, and Suppression Effects
+are the same phenomenon – the reversal paradox. Emerging Themes in
+Epidemiology 2008 5:2. DOI: 10.1186/1742-7622-5-2
+http://ete-online.biomedcentral.com/articles/10.1186/1742-7622-5-2
+
+Software-Schätzung: Matson, Huguenard: Evaluating Aptness of a Regression Model.
+Journal of Statistics Education Volume 15, Number 2 (2007)
+http://ww2.amstat.org/publications/jse/v15n2/datasets.matson.html
