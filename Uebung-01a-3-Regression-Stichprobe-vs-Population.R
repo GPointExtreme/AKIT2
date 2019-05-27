@@ -25,7 +25,7 @@ summary(population.modell)
 #Bei Erhoehung von Pressure um 1 Einheit erhoeht sich Weight um 0.39699
 #1Q und 3Q sind symetrisch um 0 = gut
 #min und max �bersteigen jedoch die doppelten Interquartilsabstaende = nicht gut
-
+#Adjusted R-squared sind nur 0.2703. Modell erkl�rt also nur 27% von unseren Daten
 
 # Nehmen wir nun an, wir machen eine Forschungsstudie mit einer Stichprobe
 # von z.B. 50 Personen
@@ -45,18 +45,25 @@ summary(modell)
 #1Q und 3Q sind nicht mehr ganz so symetrisch.
 #Bei Erhoehung von Pressure um 1 Einheit erhoeht sich Weight um 0.5614
 
+confint(modell)
+#95% der Daten liegen zwischen 91 und 117,7
+
 # (4) Fuehren Sie obige Zeilen (Stichprobe auswählen, Modell berechnen und anzeigen)
 # mehrfach aus. Sehen Sie sich an, wie sich die Werte ändern.
 #Es kommen immer andere Werte raus. Verschriebt sich schon bemerktbar.
-#Stichprobe von 50 ist wohl zu klein!
+#Stichprobe von 50 ist wohl zu klein! Powertest?
+#Oder Tests mehrmals durchf�hren?
 
 
 # Annahme: wir fuehren 100 Studien durch, jeweils mit einer Stichprobengroe�e von 50
 
 # (5) Überlegen Sie sich vorher:
 # - Wie weit werden die Koeffizienten von den Populationswerten abweichen?
+#Weicht um den Std. Error 6.63184 ab!
 # - Welche Verteilung werden die Koeffizienten haben?
-# - Wie häufig werden die 95%-Konfidenz-Intervalle die Populationswerte enthalten?
+#Sie werden Normalverteilt sein.
+# - Wie haeufig werden die 95%-Konfidenz-Intervalle die Populationswerte enthalten?
+#Wenn wir 100samples haben werden 95 drinnen liegen.
 
 n = 100
 # wir definieren den Dataframe vorab:
@@ -80,20 +87,28 @@ for (i in 1:n) {
   coefs$cwe.upr[i] = ci[2,2]
 }
 
-# (6) Schauen Sie sich nun die Histogramme für coefs$intc und coefs$cwe an
+# (6) Schauen Sie sich nun die Histogramme fuer coefs$intc und coefs$cwe an
 # Welche Verteilung weisen die Koeffizienten auf?
+hist(coefs$intc)
+hist(coefs$cwe)
+#Sind Normalverteilt!
 
 # (7) Berechnen Sie den Mittelwert von coefs$intc und coefs$cwe
 # Wie weit sind die Mittelwerte von den Werten der Gesamtpopulation entfernt?
+mean(coefs$intc)
+#Durchschnitt der Interceps der 100 Modelle: 96.79022
+#Ist sehr nahe am Intercept der Gesamtpopulation: 96.95286
 
 # Mit der folgenden Berechnung können Sie nachzählen, wie viele
 # Konfidenzintervalle die Werte der Gesamtpopulation enthalten.
 # (8) Welche Werte erhalten Sie?
 sum(coefs$intc.lwr<coef(population.modell)[1] & coef(population.modell)[1]<coefs$intc.upr)
+#Hier bekommen wir 95 raus.
 sum(coefs$cwe.lwr<coef(population.modell)[2]  & coef(population.modell)[2]<coefs$cwe.upr)
+#Hier bekommen wir 96 raus.
 
-# Wir können auch einen Plot machen, der uns alle Konfidenzintervalle und
-# den Populationswert anzeigt (nur für current.weight (cwe)):
+# Wir koennen auch einen Plot machen, der uns alle Konfidenzintervalle und
+# den Populationswert anzeigt (nur fuer current.weight (cwe)):
 
 plot(NA, xlim=c(min(coefs$cwe.lwr), max(coefs$cwe.upr)), ylim=c(1,n))
 for (i in 1:n) {
@@ -102,4 +117,6 @@ for (i in 1:n) {
 }
 abline(v=coef(population.modell)[2], col="blue")
 
-# (9) Was schließen Sie aus den obigen Summen bzw. dem Plot?
+# (9) Was schlie�en Sie aus den obigen Summen bzw. dem Plot?
+#Die 100 Stichproben ergeben im Druchschnitt die Grundgesamtheit.
+#Auch wenn viele daneben liegen.
