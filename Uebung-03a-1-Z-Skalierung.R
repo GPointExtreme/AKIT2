@@ -31,18 +31,19 @@ summary(model)
 
 # - Was genau sagt der Intercept aus? Ist der Intercept praktisch möglich? Was also sagt er aus?
 #Intercept ist -65.6772. Man kann aber nicht ein negatives Gewicht haben
+#Zeigt die Grenzen des Modells auf
 #Wenn Kree und Forearm 0 sind hat man theoretisch -65.68 weight im modell
 
 # - Was sagen die Koeffizienten für Knee.diameter und Forearm.girth?
-#Wenn das Gewicht um 1 Einheit steigt erhört sich Knee um 2.8722
-#und Forearm erhöht sich um 3.1144
+#Wenn Kneeumfang um 1cm erhöht wird erhöht sich das Gewicht um 2.8722kg
+#Wenn Unterarmumfang um 1cm erhöht wird erhöht sich das Gewicht um 3.1144
 
 # - Wie viel Prozent der Varianz im Gewicht wird durch das Modell erklärt?
 #Multiple R-squared: 0.7966 = 79% wird erklärt.
 
 # Welcher der beiden Variable hat mehr Einfluss auf das Gewicht?
 library(car)
-Anova(model) #Reihenfolge der Variablen im Modell beeinflusst Ergebniss?
+Anova(model)
 drop1(model)
 #Bei drop1 sehen wir das Forearm mit 18900.9 viel größer als Knee mit 3643.7 ist.
 #Außerdem kommt AIC von 1825.2 durch Knee auf 1915.0 und durch Forearm auf 2182.3.
@@ -103,15 +104,18 @@ summary(model.z)
 #Er ist nun positiv mit 69.1475 und theoretisch möglich.
 
 # - Was sagen die Koeffizienten für knee.diameter.z und forearm.girth.z?
-# So wie immer steigt Knee um 3.8706 und Forearm um 8.8155
+#Wenn Knieumfang um 1 Standardabweichung (1.35cm) erhöht wird, steigt das
+#Gewicht um 3.87kg
 
-# - Wie viel Prozent der Varianz im Gewicht wird durch das Modell erklÃ¤rt?
-# Vergleichen Sie die Werte mit dem ursprÃ¼nglichen Modell!
+# - Wie viel Prozent der Varianz im Gewicht wird durch das Modell erklärt?
+# Vergleichen Sie die Werte mit dem ursprünglichen Modell!
 #Immer noch das gleiche mit 79%.
-
+#Beide Modelle erklären gleich viel.
+#Liegt daran das wir das Modell nicht manipuliert sondern nur skaliert haben.
 
 # 8) Nehmen Sie den ersten Fall aus dem Datensatz und sagen Sie das Gewicht vorher anhand
 # a) des ersten Modells - und der unskalierten Variablen
+fall1 = body[1,]
 predict(model, newdata = data.frame(fall1), type = 'response')
 #69.29447
 # b) des skalierten Modells - auf Basis der z-Werte
@@ -123,8 +127,7 @@ predict(model.z, newdata = data.frame(fall1), type = 'response')
 # Hinweise:
 # - mit coef() erhalten Sie die Koeffizienten des Modells
 # - Ergebnis sollte beide Male ca. 69.3kg ergeben
-fall1 = body[1,]
-#Was soll ich übeerdenken? Sagt der Intercept einfach nix aus?
+#Was soll ich überdenken? Sagt der Intercept einfach nix aus?
 
 
 # 9) Schauen Sie sich für das z-Modell die erklärte Varianz an und die Anova-Rechnung an.
@@ -136,12 +139,15 @@ drop1(model.z)
 # 10) z-Skalieren Sie nun auch das Gewicht selbst (als body$weight.z)
 # Benützen Sie statt manueller Umrechnung  die scale()-Funktion.
 body$Weight.z = scale(body$Weight)
+#scale() retourniert keinen Vektor, sondern eine Matrix mit einer Spalte.
+#Dies kann zu unerwarteten Problemen führen.
 
 # Schauen Sie sich wieder Histogramm, Mittelwert und Standardabweichung an.
 hist(body$Weight)
 hist(body$Weight.z)
 describe(body$Weight)
 describe(body$Weight.z)
+#Nach zTransformation ist mena 0 und sd 1.
 
 # Setzen Sie dann ein neues Modell auf und interpretieren Sie wieder die Koeffizienten.
 model.z2 = lm(Weight.z ~ Knee.diameter.z + Forearm.girth.z, data = body)
@@ -155,5 +161,8 @@ summary(model.z)
 knee.z = (18.8-mean(body$Knee.diameter))/sd(body$Knee.diameter)
 Forearm.z = (26-mean(body$Forearm.girth))/sd(body$Forearm.girth)
 
-predict(model.z2, newdata = data.frame(Knee.diameter.z=knee.z, Forearm.girth.z=Forearm.z),type = 'response')
+Weight.z = predict(model.z2, newdata = data.frame(Knee.diameter.z=knee.z, Forearm.girth.z=Forearm.z),type = 'response')
 #Es Ergibt 0.01100979 was auf unserer Linie liegt.
+#Dies ist aber der zTranformierte Wert. Muss umgerechnet werden.
+Weight.z*sd(body$Weight)+mean(body$Weight)
+#Ergibt wieder 69.29447.
