@@ -25,8 +25,12 @@ koeff = coef(model)
 abline(a=koeff[1], b=koeff[2], col = "blue")
 summary(model)
 confint(model)
-#Bei erhöhung des Gewichts um 1 Einheit erhöht sich der Blutdruck um 0,39699
-#95% alle Werte würden zwischen 93,56 und 100,35 liegen.
+#Bei erhöhung des Gewichts um 1 kg erhöht sich der Blutdruck um 0,39699
+#Wenn wir unendlich oft das vorliegende Experiment wiederholen
+#dann schlössen 95% der Konfidenzintevalle den tatsächlichen
+#(Populations)-Wert ein.
+#Wir können aus dem vorliegenden Intervall nicht heraus lesen
+#ob wir ein gutes Modell haben oder nicht.
 
 #5b
 y55 = koeff[1]+koeff[2]*55
@@ -64,29 +68,44 @@ plot(body$Function.point, body$Work.hours)
 #Viele Datensätze sind in der linken unteren Ecke
 
 #4 ohne Log:
-model = lm(Work.hours.log ~ Function.point.log, data = body)
+model = lm(Work.hours ~ Function.point, data = body)
 koeff = coef(model)
 abline(a=koeff[1], b=koeff[2], col = "blue")
 
 #4 mit Log:
 #Log anwenden um Punkte aus linken unterer Ecke zu bekommen
-model.log=lm(log(Work.hours) ~ log(Function.point), data = body)
+model.log=lm(log2(Work.hours) ~ log2(Function.point), data = body)
+#log2 verwenden weil Interpretieren dann einfacher ist.
 hist(resid(model.log))
-plot(log(body$Function.point),log(body$Work.hours))
+
+library(car)
+qqp(resid(model.log))
+
+plot(log2(body$Function.point),log2(body$Work.hours))
 #plot sieht nun schon viel Besser aus
 
 koeff.log = coef(model.log)
 exp(koeff.log)
 exp(confint(model.log))
 abline(model.log)
-#Bei erhöhung der points um 1 Einheit erhöht sich die hours um 2,724778
-#Der Konfidenzintervall von 95% beim intercept liegt zwischen 4,021764 und 37,984103
-#nnd bei den Functionspoints zwischen 2,266963  und 3,275049 h/functionpoints
+summary(model.log)
+#Ändert sich workhours.log um 1.002, d.h. auch work.hours verdoppelt sich
+#Pro 1 functionpoint.log (== functionpoint verdoppelt sich)
+#Was heißt das jetzt genau?
 
 #4a
 summary(model)
 confint(model)
-#ohne Log: Bei erhöhung der points um 1 Einheit erhöhen sich die Stunden um 15,124
+#ohne Log: Bei erhöhung um 1 hour kommen 15,124 functionpoints dazu.
+
+confint(model.log, level = 0.95)
+2^confint(model.log, level = 0.95)[2,1]
+#Lower Bound:
+#Wenn sich functionpoints verdoppelt dann ver-x-facht sich hours um 1.76
+
+2^confint(model.log, level = 0.95)[2,2]
+#Upper Bound:
+#Wenn sich functionpoints verdoppelt dann ver-x-facht sich hours um 2.276
 
 #4b
 #ohne Log:
@@ -105,15 +124,15 @@ predict(model, newdata = data.frame(Function.point = 3200, type='response'))
 
 #Mit Log:
 #Aufpassen hier! Variable in Dataframe darf nicht die mit .log sein!
-exp(predict(model.log, newdata = data.frame(Function.point=100),type="response"))
+2^predict(model.log, newdata = data.frame(Function.point=100),type="response")
 #1249.634
-exp(predict(model.log, newdata = data.frame(Function.point=200),type="response"))
+2^predict(model.log, newdata = data.frame(Function.point=200),type="response")
 #2503.406
-exp(predict(model.log, newdata = data.frame(Function.point=400),type="response"))
+2^predict(model.log, newdata = data.frame(Function.point=400),type="response")
 #5015.103
-exp(predict(model.log, newdata = data.frame(Function.point=800),type="response"))
+2^predict(model.log, newdata = data.frame(Function.point=800),type="response")
 #10046.81
-exp(predict(model.log, newdata = data.frame(Function.point=1600),type="response"))
+2^predict(model.log, newdata = data.frame(Function.point=1600),type="response")
 #20126.9
-exp(predict(model.log, newdata = data.frame(Function.point=3200),type="response"))
+2^predict(model.log, newdata = data.frame(Function.point=3200),type="response")
 #40320.45
