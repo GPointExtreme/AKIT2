@@ -43,6 +43,7 @@ exp(coef(model))
 # Neues Beispiel!!!
 
 df = read.csv('C:\\Users\\Dominik\\Downloads\\Fair-JPE-1978_PsychToday.csv')
+summary(df)
 
 df$had.affair = ifelse(df$affairs > 0, 1, 0)
 table(df$had.affair)
@@ -50,10 +51,13 @@ table(df$had.affair)
 model = glm(had.affair ~ age, data=df, family = binomial(link='logit'))
 summary(model)
 exp(coef(model))
+exp(coef(model))[2]^50
+#Nach 50 Jahren verdoppelt sich die Chance das ein Seitensprung passiert.
 
 predict(model, newdata=data.frame(age=46), type='response')
 # 28,5%
 
+#Intercept + jahre * age = logit (seitensprung)
 -1.557192 + 46*0.013920 # logit
 odds = exp(-1.557192 + 46*0.013920) # odds (Wettchance) 0.4 == 2/5
 odds/(1+odds) # absolute Wahrscheinlichkeit: 28.6%
