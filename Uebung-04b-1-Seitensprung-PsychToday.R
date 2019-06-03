@@ -19,8 +19,8 @@ library(akit2)
 # Setzen Sie zwei Modelle an:
 # Eines mit gender + age + married + child + religious + happy
 # und ein zweites, bei dem child nicht verwendert wird
-model1 = glm(had.affair ~ gender + age + married + child + religious + happy, data = affairs)
-model2 = glm(had.affair ~ gender + age + married + religious + happy, data = affairs)
+model1 = glm(had.affair ~ gender + age + married + child + religious + happy, data = affairs, family = binomial(link = 'logit'))
+model2 = glm(had.affair ~ gender + age + married + religious + happy, data = affairs, family = binomial(link = 'logit'))
 summary(model1)
 summary(model2)
 
@@ -35,31 +35,51 @@ AIC(model1, model2)
 
 anova(model1, model2, test = "Chisq")
 #Prüft ob Ergebniss signifikant ist.
+#Auch hier ist Model 2 Besser weil höherer Resid. Df.
 
 # Testen Sie für beide Modelle, ob eine Overdispersion vorliegt
 deviance(model1) / model1$df.residual
-#0.1675609
+#1.017093 - Ist der Wert deutlich größer als 1 dann liegt eine Overdispersion vor.
 deviance(model2) / model2$df.residual
-#0.1675511
+#1.018025 - Sieht hier gerade noch gut aus.
 
 # Prüfen Sie für das erste Modell, ob logit() passend ist oder andere Variablen fehlen bzw.
 # ob der Zusammenhang mit den numerischen Variablen linear ist.
 hinkley(model1)
+#y.hat^2 ist ok - Passt also gut.
 
+log.linearity.test(model1)
+#Hier ist auch alles ok.
 
 # Erstellen Sie ein drittes Modell, bei dem child+happy fehlen
+model3 = glm(had.affair ~ gender + age + married + religious, data = affairs, family = binomial(link = 'logit'))
 
 # Ist das Modell besser?
+AIC(model1, model2, model3)
+#model 3 ist schlechter als model1 und 2.
 
-# PrÃ¼fen Sie fÃ¼r dieses dritte Modell, ob logit() passend ist oder andere Variablen fehlen
+# Prüfen Sie für dieses dritte Modell, ob logit() passend ist oder andere Variablen fehlen
+hinkley(model3)
+#y.hat^2 ist ok.
 
-
-# Gibt es AusreiÃŸer im ersten Modell?
+# Gibt es Ausreißer im ersten Modell?
+outlierTest(model1)
+#No Studentized residuals with Bonferonni p < 0.05
+#Also passt alles - Keine Ausreißer
 
 # Zeichnen Sie auch das Cook-Distance-Diagramm auf
+plot(model1, which = 4)
+#Keine Werte über 0.5. Also alles gut.
 
 # Geben Sie folgende Wahrscheinlichkeiten (%) und Chancen (Odds) an:
 # - Seitensprung einer Person mit gender=male, age=30, married=7, child=no, religious=slightly, happy=5
+Wahrscheinlichkeit = predict(model1, newdata=data.frame(gender="male",age=30,married=7,child='no',religious='slightly',happy=5),type = "response")
+#0.1977581 = die Wahrscheinlichkeit
+
+logit = predict(model1, newdata=data.frame(gender="male",age=30,married=7,child='no',religious='slightly',happy=5))
+chance = exp(logit)
+#0.2465068 = die Chance
+
 # - Seitensprung einer Person mit gender=male, age=35, married=12, child=no, religious=slightly, happy=5
 # - Seitensprung einer Person mit gender=female, age=30, married=7, child=no, religious=slightly, happy=3
 # - Seitensprung einer Person mit gender=female, age=30, married=7, child=no, religious=antireligious, happy=3
