@@ -127,9 +127,92 @@ exp(cbind(data.frame(coef(model), coef(model2))))
 
 # Schritt 3: Erstellen Sie ein weiteres Modell ohne den Gesamteindruck-Faktor.
 #            Verifizieren & interpretieren Sie das Modell.
+model3 = glm(ausgezeichnet ~ visuell.z + milchzucker + enzyme, data = df, family = binomial(link = 'logit'))
+
+deviance(model3) / model3$df.residual
+#1.009908 - Sollte kleiner 1 sein - Knapp über 1 ist noch kein Problem.
+
+hinkley(model3)
+#y.hat^2 ist ok.
+
+log.linearity.test(model3)
+#Funktioniert nicht weil 0 Werte drinnen sind.
+
+outlierTest(model3)
+#No Studentized residuals with Bonferonni p < 0.05
+
+plot(model3, which = 4)
+#Andere Ausreißer aber keiner über 0.5
+
+plot(model3, which = 5)
+#Sieht auch gut aus. 110 sticht heraus.
+
+#Interpretation pipapo
+summary(model3)
+summary(model)
+#enzyme ist nun negativ. Visuell.z und milchzuker sind nun signifikant.
+
+inv.logit(coef(model3)[1])
+#0.009690989 = 1% Wenn Milchzucker und enzyme 0 wären dann gäbe es eine 1%
+#Warscheinlichkeit das es ein Prämiumkäse ist. 6x höher als vorher.
+
+#Visueller Eindruck
+odds.visuell = exp(coef(model3)[2])
+odds.visuell
+1-0.7899023
+#0.2100977 = 21% Chance wenn sich der visuelle Eindruck um 1-sd Punkt auf der 
+#likert-Skala erhöht dann sinkt die Chance auf einen Prämiumkäse um das 0.79-fache.
+
+#Enzyme
+odds.visuell = exp(coef(model3)[4])
+odds.visuell
+1-0.9413493
+#0.0586507 = 6% Chance wenn sich die Enzyme um 1 Wert erhöhen dann sinkt die Chance
+#auf einen Prämiumkäse um das 0.94-fache.
+
+Anova(model3)
+#Einfluss von enzyme ist am größten jedoch dicht gefolgt von visuell.z und milchzucker.
+
+anova(model, model3)
+#model besser weil es einen kleinere Werte hat.
+
+AIC(model, model3)
+#Auch hier ist model besser als model3.
+
+par(mfrow=c(2,1))
+ROC(model)
+ROC(model3)
+#Auch hier sieht man die Kurve von model zeigt mehr Erklärungskraft an.
 
 # Schritt 4: Conclusio:
 #            Was schließen Sie aus den beiden Modellen?
-#            Wenn Sie KÃ¤sehersteller wÃ¤ren, was bedeuten die Ergebnisse fÃ¼r Neukunden-Gewinnung und Bestandskunden?
-#            Welche "confounding"/"versteckte" Eigenschaften kÃ¶nnen das Resultat verfÃ¤lschen?
-#            Welche Empfehlung geben Sie fÃ¼r die nÃ¤chste Studie ab? (soll nochmal selbe Fragen analysieren)
+#model mit gesamt.z ist Besser und Erklärt mehr.
+#Die Ausreißer darin sollten wir nochmal mit Domainenwissen anschauen/kontrollieren!
+
+#Außerdem ändert enzyme das vorzeichen. Beudeut das hier wohl eine Korellation vorliegt?
+cor(df$gesamt, df$enzyme)
+#Ja liegt mit 0.6 vor.
+
+#Im model überschattet der gesamteindruck den visuelleneindruck.
+
+#            Wenn Sie Käsehersteller wären, was bedeuten die Ergebnisse für Neukunden-Gewinnung und Bestandskunden?
+#Die Anwendung des ersten Modells ist eher für Bestandskunden da diese den
+#Gesamteindruck kennen.
+#model2 ist eher für Neukunden da diese noch keinen Gesamteindruck haben.
+
+#Sowohl Gesamteindruck als auch Visueller Eindruck sind gegenüber Prämiumkäse
+#negativ. Also als Herstellen müssen wir darauf nicht so viel Wert legen da
+#die Meinung von Endverbraucher und Schiedsrichter auseinander gehen.
+
+#            Welche "confounding"/"versteckte" Eigenschaften können das Resultat verfälschen?
+#Wir wissen nicht welche Personen befragt wurden bzw. welche Sorten Käse alle
+#miteinbezogen wurden. Somit können wir nicht auf die Gesamtheit schließen.
+
+#            Welche Empfehlung geben Sie für die nächste Studie ab? (soll nochmal selbe Fragen analysieren)
+#Können wir weitere Variablen mit rein nehmen die Hilfreich wären?
+#Mag Person generell Käse? Käsevorlieben oder Käse-"Wissen" erheben?
+#Wie regelmäßig essen die Personen Käse?
+#Ziel der Studie sollte klar sein: wollen wir die Käsehersteller beraten,
+#wie sie möglichst zum perfekten Käse kommen oder machen wir eine Marktstudie?
+#Bei zweiterem müsste das Modell ganz anders aufgestellt sein. Statt Prämiumkäse
+#müsste der Gesamteindruck als abhängige Variable hergenommen werden.
