@@ -16,10 +16,10 @@ library(akit2)
 
 df <- read.csv('C:\\Users\\Dominik\\Downloads\\fussball-gelb.csv')
 
-# Aus vier verschiedenen FuÃŸball-Liegen liegen Ergebnisse fÃ¼r gelbe Karten je Spielposition vor.
+# Aus vier verschiedenen Fußball-Liegen liegen Ergebnisse für gelbe Karten je Spielposition vor.
 #
-# Der Datensatz enthÃ¤lt:
-# - position ... Spielposition auf dem FuÃŸballfeld
+# Der Datensatz enthält:
+# - position ... Spielposition auf dem Fußballfeld
 # - league ... FuÃŸball-Liga
 # - height ... durchschnittliche GrÃ¶ÃŸe der Spieler
 # - weight ... durchschnittliches Gewicht der Spieler
@@ -70,39 +70,26 @@ plot(df$games, df$yellow)
 plot(log2(df$games), log2(df$yellow+1))
 #Daten sind nun besser verteilt.
 
-df$games.log = log2(df$games+1)
-df$yellow.log = log2(df$yellow+1)
+df$games.log = log2(df$games+1) #Erhöhung um +1 hat keinen bestimmten Grund.
+df$yellow.log = log2(df$yellow+1) #Um +1 erhöhen weil ein 0 Wert drinnen ist!
 
 plot(df$games.log, df$yellow.log)
 #ACHTUNG bei Interpretation muss zurückgerechnet werden!
 
+#z-Transformieren (machen wir bei Bayes immer!)
 dfz = prepare.df.bayes(df, drop.originals = TRUE)
 summary(dfz)
 #sieht gut aus!
 
-
-#-------------------- Modell aufstellen -------------------#
-
-#Modell mit 2 Gruppen und vier Variablen
-#Wenn Interaktion gefragt ist
-#bei den Variablen hinzufügen.
-#zwei Variablen: beta.interaktion*height*variable 2 -> interkation von height und variable 2
-#einer Variable und einer Gruppe:  beta[gruppe[i]]*height[i]  -> nicht ganzs sicher ob das stimmt
+#--------------------------Beginn von Modell definition---------------------------------#
 
 
-#Gru-ppe1             = league       
-#Gru-ppe2             = position
-#abhaengige-Variable  = yellow.log
-#Vari-able1           = 
-#Vari-able2           =
-#Vari-able3           =
-#Vari-able4           =
 
 modell = "
 data {
-N <- length(yellow.log[])     # generelle Lafuvariable über alle Werte
-Nleague <- max(league)      # Anzahl der league ->4
-Nposition <- max(position)  # Anzahl der position -> 12
+N <- length(yellow.log[])
+Nleague <- max(league)
+Nposition <- max(position)
 }
 
 
@@ -111,54 +98,57 @@ model {
 for (i in 1:N) {
 
 
-yellow.log[i] ~ dnorm(mu[i], 1/sigma[league[i]]^2)  # ACHTUNG: Je nachdem nach welcher Gruppe gefragt wird, muss hier auch die richtige Gruppe eingetragen werden. 
-#für das Pooling verwendet wird. Unterschiedliche sd fÃ¼r league
+yellow.log[i] ~ dnorm(mu[i], 1/sigma[league[i]]^2)  #!!Grup-pe1  ACHTUNG: hier könnte sein das die Gruppe 2 genommen werden muss jenachdem wir man oben die Gruppe mit der Varianz definiert
 
-mu[i] <- interceptposition[position[i]] +           # Gruppe fÃ¼r position / intercept
-interceptleague[league[i]] +                        # Gruppe fÃ¼r league /intercept
+mu[i] <- interceptposition[position[i]] +           # Gruppe fuer position / intercept
+interceptleague[league[i]] +                        # Gruppe fuer league /intercept
 beta.height*height[i] +
 beta.weight*weight[i] +
-beta.games*games.log[i]                             #-----------ACHTUNG hier stand zuerst games.log*games.log nach dem ersetzen
+beta.games*games.log[i]
 }
 
-#----------------------------------------------------------------------------------------------
-#Vorhersage
+
+
+#----------------------------Beginn von Vorhersage-----------------------------------#
+
 #yellow.log.hat[i] ~ dnorm(mu[i], 1/sigma[league[i]]^2) #ist gleich erste Zeile im Modell
-#----------------------------------------------------------------------------------------------
+
+#-----------------------------Ende der Vorhersage------------------------------------#
 
 
+#-----------------------------------Priors-------------------------------------------#
 
-# Priors
 
 for(l in 1:Nleague){
 sigma[l]~dexp(3/1)
 }
-#--------------------------------------------------------------------------
+#--------------------------ACHTUNG Partial Pooling-----------------------------------#
 #interceptleague[l]~dnorm(0,1)
 #sigma[l]~dexp(3/1) 
 #wenn in der Fragestellung nach der Gruppe gefragt wird die Pooling verlangt, dann gehört
 #diese Funktion in die forschleife des Partial-Poolings
-#--------------------------------------------------------------------------
+#------------------------------------------------------------------------------------#
 
 
 beta.height ~ dnorm(0,1/1^2)
 beta.weight ~ dnorm(0,1/1^2)
-beta.games ~ dnorm(0,1/1^2) #<---------- achtung war vorher log
+beta.games ~ dnorm(0,1/1^2)
 
-#--------------------------------------------------------------------------
+
 for(l in 1:Nleague) 
 {
   interceptleague[l] ~ dnorm(0, 1/1^2)
 }
-#--------------------------------------------------------------------------
+
 
 # league hat nur 3 Werte: kein Pooling
 # alle leagues bekommen das selbe sgima & intercept
-#VT: wenn 7 leagues wären, dann müsste man sonst 7 Zeilen für intercept und 7 für sigma schreiben
+#VT: wenn 7 leagues wären, dann muesste man sonst 7 Zeilen fuer intercept und 7 fuer sigma schreiben
 
+#--------------------------------Ende von Priors-------------------------------------#
 
+#-------------------------Partial-Pooling fuer position-------------------------------#
 
-# Partial-Pooling für position
 
 interceptposition.mu ~ dnorm(0,1/1^2)
 interceptposition.sigma ~ dexp(1)
@@ -187,12 +177,12 @@ for (d in 1:Nposition)
   Gammaposition[d] <- mean(mtx[1:Nleague,d]) - intercept  # mtx ist definiert mit mtx[l,d]
 }
 
-
+#------------------------Ende Partial-Pooling fuer position-----------------------------#
 }
 "
 
 
-#Modell für Variablen aufrufen
+#Modell fuer Variablen aufrufen
 modell.fit = run.jags(model=modell,
                       data=dfz,
                       burnin = 5000,
@@ -205,18 +195,23 @@ modell.fit = run.jags(model=modell,
                                    list(.RNG.name="base::Super-Duper", .RNG.seed=123),
                                    list(.RNG.name="base::Wichmann-Hill", .RNG.seed=789)),
                       method = "parallel")
-
+summary(df)
 fit.samples = as.matrix(modell.fit$mcmc)
 fit.summary = view(modell.fit)
-#MC%ofSD alles unter 2 also können wir weiter machen
 
-#Weil SSeff bei diesen Variablen rund um 10000 sind schauen wir das genauer an!
-diagMCMC(modell.fit$mcmc, "beta.height")
-diagMCMC(modell.fit$mcmc, "beta.weight")
+
+
+#Wenn MC%ofSD um 1 dann mcmc machen bzw wenn SSeff unter 10000
+diagMCMC(modell.fit$mcmc,"beta.weight")
+diagMCMC(modell.fit$mcmc,"beta.height")
+
+
+#-------------------------------Ende Vorlage-------------------------------#
+
 
 #----------------- Interpretation -------------------#
 
-# Frage 1: Welche Spielposition erhÃ¤lt am meisten, welche am wenigsten gelbe Karten?
+# Frage 1: Welche Spielposition erhält am meisten, welche am wenigsten gelbe Karten?
 #          Ist der Unterschied relevant? Oder gibt es Positionen mit Ähnlich vielen Karten?
 plotcoef(modell.fit, c("Gammaposition"))
 #Position 5 hat am meisten Gelbe Karten
@@ -258,11 +253,18 @@ table(df$position)
 #7-10
 diff_pos7v10_z_log = (fit.samples[,"Gammaposition[7]"]-fit.samples[,"Gammaposition[10]"])
 plotPost(diff_pos7v10_z_log, compVal = 0)
+#Schließt 0 mit ein. Ist somit nicht signifikant.
 
 #8-11
+diff_pos8v11_z_log = (fit.samples[,"Gammaposition[8]"]-fit.samples[,"Gammaposition[11]"])
+plotPost(diff_pos8v11_z_log, compVal = 0)
+#Schließt 0 mit ein. Ist somit nicht signifikant.
 
 #9-12
-#Machen wir jetzt nicht.
+diff_pos9v12_z_log = (fit.samples[,"Gammaposition[9]"]-fit.samples[,"Gammaposition[12]"])
+plotPost(diff_pos9v12_z_log, compVal = 0)
+#Schließt 0 mit ein. Ist somit nicht signifikant.
+#Es gibt somit an keiner Position einen Unterschied zwischen links und rechts!
 
 # Frage 4: Wie interpretieren Sie den Einfluss von Größe und Gewicht der Spieler?
 #          In welchem Zusammenhang stehen gelbe Karten zu Anzahl an Spielen?
@@ -287,5 +289,8 @@ table(df$league)
 diff_pos4v2_z_log = (fit.samples[,"alphaleague[4]"]-fit.samples[,"alphaleague[2]"])
 plotPost(diff_pos4v2_z_log, compVal = 0)
 
-plotPost(2^(fit.samples[, "alphaleague"]*sd(df$yellow.log)))
-#Umrechnen geht hier nicht?!?!?!?!
+#Umrechnen
+diff_z_log = 2^(diff_pos4v2_z_log*sd(df$yellow.log))
+plotPost(diff_z_log, compVal = 0)
+#Spieler in der spanischen Liga bekommen im Schnitt um das 1.35fache mehr gelbe Karten als
+  #in der Liga in Frankreich.
