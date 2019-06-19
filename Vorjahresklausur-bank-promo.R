@@ -72,17 +72,15 @@ summary(model2)
 deviance(model1)/model1$df.residual #ist unter 1. Also ok.
 deviance(model2)/model2$df.residual #ist unter 1. Also ok.
 
-y.hat1 = predict(model1)
-y2.hat1 = y.hat1^2
-model1.test = glm(y ~ y.hat1 + y2.hat1, data = dfn, family = binomial(link = "logit"))
-summary(model1.test)
-#y.hat1 ist signifikant was gut ist aber y2.hat1 ist auch signifikant = nicht gut!
+hinkley(model1)
+#y.hat ist signifikant was gut ist aber y2.hat ist auch signifikant = not ok!
+hinkley(model2)
+#y.hat ist signifikant was gut ist und y2.hat ist nicht signifikant = ok!
 
-y.hat2 = predict(model2)
-y2.hat2 = y.hat2^2
-model2.test = glm(y ~ y.hat2 + y2.hat2, data = dfn, family = binomial(link = "logit"))
-summary(model2.test)
-#y.hat2 ist signifikant was gut ist und y2.hat2 ist nicht signifikant, so wie es sein soll!
+log.linearity.test(model2)
+#duration:log(duration) = not ok. Die Variable hat auch eine "nicht-lineare Komponente". 
+#Mögliche Abhilfen: Variable noch x² oder log(x) berechnen und zusätzlich in das Modell mit 
+#aufnehmen.
 
 vif(model1)
 #Alle werte unter 2. Also gut.
@@ -105,6 +103,7 @@ ROC(model2)
 Anova(model1)
 drop1(model1)
 Anova(model2)
+#balance ist nicht signifikant. Kann also vernachlässigt werden.
 drop1(model2)
 
 # Schritt 2: Beantworten Sie folgende Fragen (und geben Sie verständliche Zahlen dazu an):
@@ -118,15 +117,18 @@ inv.logit(coef(model1)[1])
 #2% Chance das der derzeitige Basisfall kommt: Monat Jänner und poutcome unkown
 
 exp(coef(model1)[14]) #14 weil campaign die Anrufzahl beinhaltet
-#Pro Sexanruf mehr den wir tätigen verringert sich die Chance um 10%
+#Pro Anruf mehr den wir tätigen verringert sich die Chance um 10%
 
 (exp(coef(model1)[14])^10)
-#Nach 10 Anrufen mehr die wir tätigen verringert sich die Chance um 35%
+#Nach 10 Anrufen mehr die wir tätigen verringert sich die Chance um 65%
 
 exp(coef(model1))
-#bei Umfragen die im Monat März geführt wurden erhöht sich die Chance für einen Erfogreichen abschluss auf das ca.27-fache
-#bei Umfragen die im Monat Oktober geführt wurden erhöht sich die Chance für einen Erfogreichen abschluss auf das ca.14-fache
-#bei Umfragen die im Monat September geführt wurden erhöht sich die Chance für einen Erfogreichen abschluss auf das ca.7-fache
+#bei Umfragen die im Monat März geführt wurden erhöht sich die Chance für einen Erfogreichen 
+  #abschluss auf das ca.27-fache im Vergleich zu Jänner.
+#bei Umfragen die im Monat Oktober geführt wurden erhöht sich die Chance für einen Erfogreichen
+  #abschluss auf das ca.14-fache im Vergleich zu Jänner.
+#bei Umfragen die im Monat September geführt wurden erhöht sich die Chance für einen 
+  #Erfogreichen abschluss auf das ca.7-fache im Vergleich zu Jänner.
 
 #   - Team 2:
 #       - Was ist der Basisfall und welche Erfolgsrate hat dieser?
@@ -140,21 +142,24 @@ inv.logit(coef(model2)[1])
 #Basisfall = Admin, divorced, primary, keinen Kredit und die anderen sind auf 0 (Unsinnig)
 
 exp(coef(model2))
-#Mit jedem Jahr älter erhöht sich die Chance um da 1.0026-fache (0.26%)
+#Mit jedem Jahr älter erhöht sich die Chance um das 1.0026-fache (0.26%)
 
 #retired mit 2.08-fache (108%) und student mit 2.11-fache (111%) sprechen besonders daurauf an.
 
+#Nein macht keinen Unterschied ob die Person einen Kredit (Eigenheim 51% oder Konsum 54%)
+  #aufgenommen hat. Die Chance sinkt immer auf ca. 50%.
 
 # Schritt 3: Vergleichen Sie die beiden Modelle.
 #            Zu welchem Schluss kommen Sie?
 AIC(model1, model2)
+#Anhand des AIC sehen wir das model1 eine größere Vorhersagekraft hat.
 
 logisticR2(model1)
 logisticR2(model2)
-#Was sagen diese aus?
+#Wir sehen das auch hier model1 besser als model2 ist.
 
-# Schritt 4: Sagen Sie die Erfolgswahrscheinlichkeiten fÃ¼r beide Modelle auf Basis der
-#            zweiten 5000 DatensÃ¤tze vorher. FÃ¼r die Bestimmung des Cutoff-Points
+# Schritt 4: Sagen Sie die Erfolgswahrscheinlichkeiten für beide Modelle auf Basis der
+#            zweiten 5000 Datensätze vorher. Für die Bestimmung des Cutoff-Points
 #            zeichnen Sie folgende Diagramme (je Modell):
 #            - Anteil der tatsächlich erfolgreichen (=yes) und als erfolgreich vorhergesagten
 #              Kampagnen an allen als erfolgreich vorhergesagten Kampagnen (= Relation Aufwand
@@ -172,23 +177,66 @@ logisticR2(model2)
 dfp = df[5001:10000,]
 summary(dfp)
 
+ROC(model1)
+ROC(model2)
 #Zahlen geschätzt aus ROC Kurve
-cutoff1 = 0.1
-cutoff2 = 0.16
 
-y.vorhergesagt=ifelse(predict(model1, newdata = data.frame(dfp), type="response")>=cutoff1, 1, 0) 
-true_positive   = sum(y.vorhergesagt == 1 & as.integer(dfp$y)-1 == 1) 
-true_negative   = sum(y.vorhergesagt == 0 & as.integer(dfp$y)-1 == 0) 
-false_positive  = sum(y.vorhergesagt == 1 & as.integer(dfp$y)-1 == 0) 
-false_negative  = sum(y.vorhergesagt == 0 & as.integer(dfp$y)-1 == 1) 
-true_positive_rate = true_positive / (true_positive + false_negative) 
-false_positive_rate = false_positive / (false_positive + true_negative) 
-true_positive_rate
-#0.7775891
-false_positive_rate
-#0.1858989
+#Vorhersage
+pred1 = predict(model1, dfp, type = 'response')
 
+cutoff = seq(0, 1, length.out = 200)
+TPR = numeric(200)
+positive = sum(dfp$y == "yes")
+for (i in 1:200) {
+  predict_true = sum(pred1 > cutoff[i] & dfp$y == "yes")
+  TPR[i] = predict_true / positive
+}
 
+plot(cutoff, TPR, type='line')
+
+#Für die Bestimmung des Cutoff-Points zeichnen Sie folgende Diagramme (je Modell):
+#            - Anteil der tatsächlich erfolgreichen (=yes) und als erfolgreich vorhergesagten
+#              Kampagnen an allen als erfolgreich vorhergesagten Kampagnen (= Relation Aufwand
+#              zu Erfolg)
+cutoff = seq(0, 1, length.out = 200)
+wert1 = numeric(200)
+positive = sum(dfp$y == "yes")
+for (i in 1:200) {
+  predict_true = sum(pred1 > cutoff[i] & dfp$y == "yes")
+  wert1[i] = predict_true / sum(pred1 > cutoff[i])
+}
+
+plot(cutoff, wert1, type='line')
+#Wenn wir den Schwellwert auf 0.93 legen dann schließen 70% der Leute ab.
+
+#Für die Bestimmung des Cutoff-Points zeichnen Sie folgende Diagramme (je Modell):
+#            - Anteil der tatsächlich erfolgreichen (=yes) und als erfolgreich vorhergesagten
+#              Kampagnen an allen tatsächlich erfolgreichen Kampagnen (= Anteil der 
+#              "yes"-KundInnen die erreicht werden)
+cutoff = seq(0, 1, length.out = 200)
+wert2 = numeric(200)
+positive = sum(dfp$y == "yes")
+for (i in 1:200) {
+  predict_true = sum(pred1 > cutoff[i] & dfp$y == "yes")
+  wert2[i] = predict_true / positiv
+}
+
+plot(cutoff, wert2, type='line')
+
+#Wo ist der Gewinn maximal?
+wert3 = numeric(200)
+positive = sum(dfp$y == "yes")
+for (i in 1:200) {
+  kosten = sum(pred1 > cutoff[i]) *1
+  einnahmen = sum(pred1 > cutoff[i] & dfp$y == "yes") *10
+  wert3[i] = einnahmen - kosten
+}
+
+plot(cutoff, wert3, type='line')
+#Recht schnell maximaler Gewinn.
+
+cutoff[which.max(wert3)]
+#Gewinnmaximum liegt bei einem Cutoff von 0.06
 
 # Quelle:  S. Moro, R. Laureano and P. Cortez: Using Data Mining for Bank Direct Marketing:
 #          An Application of the CRISP-DM Methodology. In P. Novais et al. (Eds.),
