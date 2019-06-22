@@ -13,7 +13,7 @@ library(coda)
 rjags::load.module("glm")
 library(akit2)
 
-# Die Betreiberin eines Rechenzentrums Ã¼berlegt ihre Festplattenkapazität aufzurüsten.
+# Die Betreiberin eines Rechenzentrums Überlegt ihre Festplattenkapazität aufzurüsten.
 # Eine kosteneffiziente Lösung ist gefragt, weshalb Daten der letzten Jahre
 # herangezogen werden, um auszuwerten, welche Festplatten zukünftig angeschafft
 # werden sollen.
@@ -85,7 +85,7 @@ vif(model2)
 outlierTest(model1)
 plot(model1, which=4)
 plot(model1, which=5)
-#Alle Werte sehen gut aus weshlab wir hier mit unserem Model weiter machen können.
+#Alle Werte sehen gut aus weshalb wir hier mit unserem Model weiter machen können.
 outlierTest(model2)
 plot(model2, which=4)
 plot(model2, which=5)
