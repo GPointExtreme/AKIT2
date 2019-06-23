@@ -205,7 +205,7 @@ plotPost(diff, compVal = 0, credMass = 0.95)
 #Umrechnen wenn Daten z- und die abhängige Variable log-transformiert sind!
 diff_z_log = 2^(diff*sd(df$price.log)) #Keine Division mit sd() bei nominalen Daten!
 plotPost(diff_z_log, compVal = 1, credMass = 0.95)
-#In 95% der Fälle liegt der Unterschied zwischen Suburb und Urban zwischen einem HDI von 
+#Zu 95% liegt der Unterschied zwischen Suburb und Urban zwischen einem HDI von 
 #0.885 und 1.09 (Durchschnittswert = 0.988)
 #Da die 1 (wie null wenn Log transformiert) eingeschlossen ist, ist der Unterschied nicht 
 #signifikant
@@ -219,7 +219,7 @@ plotPost(diff, compVal = 0, credMass = 0.95)
 #Umrechnen wenn Daten z- und die abhängige Variable log-transformiert sind!
 diff_z_log = 2^(diff*sd(df$price.log)) #Keine Division mit sd() bei nominalen Daten!
 plotPost(diff_z_log, compVal = 1, credMass = 0.95)
-#In 95% der Fälle liegt der Unterschied zwischen 1950ern und 1960ern zwischen einem HDI von 
+#Zu 95% liegt der Unterschied zwischen 1950ern und 1960ern zwischen einem HDI von 
 #1.02 und 1.35 (Durchschnittswert = 1.16)
 #Da die 1 (wie null wenn Log transformiert) nicht eingeschlossen ist, ist der Unterschied 
 #signifikant
