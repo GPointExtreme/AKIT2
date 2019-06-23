@@ -118,7 +118,7 @@ drop1(model2)[order(drop1(model2)[,3]),]
 summary(model1)
 coef(model1)
 coef(model2)
-#markeSeagate und lautstaerke ändert sich das Vorzeichen. Deutet auf einen Zusammenhang hin!
+#markeSeagate und lautstaerke ändert sich das Vorzeichen.
 
 logisticR2(model1)
 logisticR2(model2)
@@ -138,14 +138,16 @@ intcp = inv.logit(coef(model2)[1]) #--> diese liefert direkt die absolute Wahrsc
 
 #Ganzes Modell zurückrechnen:
 exp(coef(model1))
-#Wenn man die marke Western Digital nimmt erhöht sich die Chance auf das 4.3-fache einen Fehler zu haben.
+#Wenn man die marke Western Digital anstatt HSTG nimmt erhöht sich die Chance auf das 2.9-fache 
+  #einen Fehler zu haben.
 #Wenn man die marke Seagate nimmt senkt sich die Chance auf das 0.97-fache einen Fehler zu haben.
 #Wenn die drehzahl um 1RPM steigt dann erhögt sich die Chance auf das 1.00015-fache einen Fehler zu haben.
 (exp(coef(model1)[6])^1000)
 #Wenn die drehzahl um 1000RPM steigt dann erhögt sich die Chance auf das 1.16-fache einen Fehler zu haben.
 
 exp(coef(model2))
-#Wenn man die marke Western Digital nimmt erhöht sich die Chance auf das 2.9-fache einen Fehler zu haben.
+#Wenn man die marke Western Digital anstatt HSTG nimmt erhöht sich die Chance auf das 4.3-fache 
+  #einen Fehler zu haben.
 #Wenn man die marke Toshiba nimmt senkt sich die Chance auf das 3.5-fache einen Fehler zu haben.
 #Wenn die drehzahl um 1RPM steigt dann erhögt sich die Chance auf das 1.00018-fache einen Fehler zu haben.
 (exp(coef(model2)[6])^1000)
@@ -179,21 +181,15 @@ type='response')
 # - Beurteilen Sie die Vorhersagekraft beider Modelle im Vergleich.
 #   Geben Sie weiters die Eigenschaften des 3.5"-Modells an, wenn es eine
 #   True-Positive-Rate von 0.8 hat. Welche Schlussfolgerungen ziehen Sie daraus?
-#vorhersage des kompletten Models mit den jeweiligen Testdaten
-
-p1 = predict(model1, df25)
-p2 = predict(model2, df35)
-#echte Daten - vorhersage daten rechnen quadrieren wegen sum of squares
-ssq1 = sum((df25$fehler - p1)^2)
-ssq2 = sum((df35$fehler - p2)^2)
-c(ssq1, ssq2)
-#Ist in model2 besser weil die Vorhersagen weniger abweichen.
+#Modellvergleiche wurden schon zuvor gemacht!
 
 #---------------------------------Cutoff bestimmen
 ROC(model1)
 cutoff = 0.26
-#Heißt das wir eine Festplatte ab einer Fehlerwarscheinlichkeit von 26% als 
-#fehlerhaft einstufen.
+#Wenn wir cutoff~0.26 setzen, ergibt sich ein TPR von 0.8 (80% aller Fehler werden richtig 
+#vorhergesagt) aber dabei ist dann FPR~0.55 (55% aller fehlerfreien Festplatten werden als 
+#fehlerhaft vorhergesagt). Das ist viel und für die Praxis wohl kein guter Cutoff-Point.
+
 
 ############################################################################################
 # - Neuanschaffung: wir wollen 500 2.5"-Festplatten anschaffen.
@@ -213,12 +209,12 @@ p3_25 = predict(model1, newdata = data.frame(
 p4_25 = predict(model1, newdata = data.frame(
   marke="Western Digital", groesze=6, drehzahl=10000, lautstaerke=30, leistung=10), type='response')
 c(p1_25, p2_25, p3_25, p4_25)
-p1_25*254 #51.19
-p2_25*230 #60.67
-p3_25*158 #103.37
-p4_25*180 #129.55
+500*(1+p1_25)*254 #152596.6
+500*(1+p2_25)*230 #145337.9 
+500*(1+p3_25)*158 #130687.7
+500*(1+p4_25)*180 #154776.2
 
-#Wir können sehen das die HGST am günstigsten sein würde.
+#Wir können sehen das die Toshiba am günstigsten sein würde.
 
 # [^1]: Ohne Berücksichtigung von Strom- und Personalkosten; gehen Sie davon aus,
 #       dass fehlerhafte Festplatten nur ein einziges Mal nachgekauft werden mÃ¼ssen.
