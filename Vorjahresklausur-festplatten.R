@@ -216,18 +216,8 @@ c(p1_25, p2_25, p3_25, p4_25)
 
 #Wir können sehen das die Toshiba am günstigsten sein würde.
 
+
 # [^1]: Ohne Berücksichtigung von Strom- und Personalkosten; gehen Sie davon aus,
 #       dass fehlerhafte Festplatten nur ein einziges Mal nachgekauft werden mÃ¼ssen.
 # [^2]: Sie sollten nicht nur Punktwerte berechnen, sondern (so weit möglich)
 #       gleich Konfidenzintervalle.
-
-
-# Der Datensatz enthält:
-#   
-# - marke ... Name des Herstellers
-# - groesze ... Größe der Festplatte in TB
-# - bauart ... 2.5" oder 3.5"
-# - drehzahl ... Umdrehungsgeschwindigkeit in RPM
-# - lautstaerke ... zuletzt gemessene Lautstärke (in dB) der Festplatte im Betrieb
-# - leistung ... Leistungsaufnahme in W
-# - fehler ... 0 = kein Fehler, 1 = Festplatte ist im Beobachtungszeitraum ausgefallen
