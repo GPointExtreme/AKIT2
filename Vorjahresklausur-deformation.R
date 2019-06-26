@@ -309,3 +309,4 @@ pred_neu_ergebniss=sum(pred_neu>325)
 pred_neu_ergebniss
 154/1000*100
 #Die Deformation wird 15.4% höher als 325 sein.
+#Das heißt in 15 von 100 Fällen tauschen wir das Sieb.
